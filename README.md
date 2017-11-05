@@ -9,8 +9,7 @@ user: 		root <br/>
 password: 	prestapassword <br/>
 address:	172.17.0.2 <br/>
  <br/> <br/>
-obraz bazy: 	szczepan/biznes:db <br/>
-obraz sklepu:	szczepan/biznes:shop <br/>
+obraz sklepu:	procentylirwa/prestashop:v1 <br/>
  <br/> <br/>
 ====================================================== <br/>
 Tworzenie backupu bazy: <br/>
