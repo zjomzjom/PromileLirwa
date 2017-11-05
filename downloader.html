@@ -1,0 +1,331 @@
+<html>
+<head>
+	<script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+	<script>
+	var licznik = 0;
+	var pobraneProdukty = [];
+	
+	$(document).ready(function(){
+		$("#start").click(function(){
+			licznik = 0;
+			pobraneProdukty = [];
+			$("#licznik").text(licznik);
+			var link = $("#link").val();
+			$.get(link,function(data){
+				GetElements($.parseHTML(data));
+			});
+		});
+	
+		
+		$("#csv").click(function(){
+			toCsv();
+		});
+	})
+	
+	function GetElements(page){
+		var container = $(page).find(".row .big_with_description");
+		var products = $(container).find(".product");
+		$("#licznik").text("0");
+		$("#suma").text(products.length);
+		$(products).each(function(index,product){
+			var pobrany = {};
+			pobrany.Nazwa = $(product).find(".product-name > a").text();
+			pobrany.Thumbnail = $(product).find("img").attr('src');
+			
+			var cenaString = $(product).find(".price").text();
+			cenaString = cenaString.substring(0,cenaString.length - 3).replace(",",".");
+			pobrany.Cena = parseFloat(cenaString);
+			
+			var link = $(product).find(".product-name > a").attr("href");
+			
+			$.get(link,function(data){
+				licznik++;
+				SetLicznik();
+				GetDetails(pobrany,$.parseHTML(data));
+			});
+		});
+	}
+	
+	function GetDetails(element,detailsPage){
+		element.Zajawka = $(detailsPage).find(".short-description").text();
+		element.Opis = $(detailsPage).find(".box-description .std").text().replace(/ +(?= )/g,'');
+		
+		
+		element.Szczegoly = [];
+		var wiersze = $(detailsPage).find(".table > tbody > tr");
+
+		$(wiersze).each(function(index, wiersz){
+			element.Szczegoly.push({
+				"Nazwa":$(wiersz).find("th").text(),
+				"Wartosc":$(wiersz).find("td").text()
+			});
+		});
+		
+		
+		var slideshow = $(detailsPage).find(".product-img-box .slides");
+		element.Zdjecia = [];
+		$(slideshow).each(function(index, slide){
+			element.Zdjecia.push($(slide).find("a").attr("href"));
+		});
+		pobraneProdukty.push(element);
+	}
+	
+	function SetLicznik(){
+		$("#licznik").text(licznik);
+	}
+	
+	
+	function toCsv(){
+		$("#csvki").empty();
+	
+		var csv = "Name;Categories;Price tax included;Manufacturer;Quantity;Short description;Description;Image URLs (x,y,z...);Feature(Name:Value:Position)";
+		csv+='\n';
+		for(var i = 0; i < pobraneProdukty.length;i++){
+			var prod = pobraneProdukty[i];
+			//name
+			csv+=prod.Nazwa+";";
+			//categories
+			csv+=$("#kategoria").val()+";";
+			//price
+			csv+=prod.Cena+";";
+			//manufacturer
+			var flaga=false;
+			for(var j=0;j<prod.Szczegoly.length;j++){
+				if (prod.Szczegoly[j].Nazwa=="Producent/Marka"){
+					csv+=prod.Szczegoly[j].Wartosc+";";
+					flaga = true;
+					break;
+				}
+			}
+			if(!flaga){
+				csv+="-;";
+			}
+			//quantity
+			csv+="500;";
+			//short description
+			csv+=prod.Zajawka.replace(/(\r\n|\n|\r)/gm," ").replace(/;/g, "")+";";
+			//desc
+			csv+=prod.Opis.replace(/(\r\n|\n|\r)/gm," ").replace(/;/g, "")+";";
+			//images
+			if(prod.Zdjecia.length <= 0 || prod.Zdjecia[0] == null){
+				csv+=prod.Thumbnail+";";
+			}else{
+				for(var j=0;j<prod.Zdjecia.length;j++){
+					csv+=prod.Zdjecia[j];
+					if(j==prod.Zdjecia.length-1){
+						csv+=";"
+					}else{
+						csv+=",";
+					}
+				}
+			}
+			
+			
+			//features
+			for(var j=0;j<prod.Szczegoly.length;j++){
+				
+				var ficzer = prod.Szczegoly[j].Nazwa + ":"+prod.Szczegoly[j].Wartosc.replace(/;/g, ",").replace(/:/g, " ") + ":" + j;
+				csv+= ficzer;
+				
+				if(j==prod.Szczegoly.length-1){
+					csv+=";"
+				}else{
+					csv+=",";
+				}
+			}
+			
+			
+			csv+='\n';
+			
+		}
+		
+		var exportLink = document.createElement('a');
+		exportLink.setAttribute('href', 'data:text/csv;base64,' + Base64.encode(csv));
+		exportLink.setAttribute('download','produkty.csv')
+		exportLink.appendChild(document.createTextNode('produkty.csv'));
+		document.getElementById('csvki').appendChild(exportLink);
+			
+	}
+	
+	</script>
+</head>
+<body>
+	LINK <input type="text" id="link" value="http://www.alkoholeswiata.com/piwo/"/>
+	<br>
+	KATEGORIA <input type="text" id="kategoria" value="Piwa"/>
+	<br/>
+	<br/>
+	<br/>
+	<button id="start">START</button>
+	<button id="csv">CSV</button>
+	
+	<br/>
+	<br/>
+	
+	<div id="licznikDiv">
+		pobrano
+		<span id="licznik">0</span> / <span id="suma">0</span>
+	</div>
+	<br/>
+	<div id="csvki">
+		
+	</div>
+</body>
+
+
+
+
+<script>
+var Base64 = {
+
+    // private property
+    _keyStr: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/="
+
+    // public method for encoding
+    , encode: function (input)
+    {
+        var output = "";
+        var chr1, chr2, chr3, enc1, enc2, enc3, enc4;
+        var i = 0;
+
+        input = Base64._utf8_encode(input);
+
+        while (i < input.length)
+        {
+            chr1 = input.charCodeAt(i++);
+            chr2 = input.charCodeAt(i++);
+            chr3 = input.charCodeAt(i++);
+
+            enc1 = chr1 >> 2;
+            enc2 = ((chr1 & 3) << 4) | (chr2 >> 4);
+            enc3 = ((chr2 & 15) << 2) | (chr3 >> 6);
+            enc4 = chr3 & 63;
+
+            if (isNaN(chr2))
+            {
+                enc3 = enc4 = 64;
+            }
+            else if (isNaN(chr3))
+            {
+                enc4 = 64;
+            }
+
+            output = output +
+                this._keyStr.charAt(enc1) + this._keyStr.charAt(enc2) +
+                this._keyStr.charAt(enc3) + this._keyStr.charAt(enc4);
+        } // Whend 
+
+        return output;
+    } // End Function encode 
+
+
+    // public method for decoding
+    ,decode: function (input)
+    {
+        var output = "";
+        var chr1, chr2, chr3;
+        var enc1, enc2, enc3, enc4;
+        var i = 0;
+
+        input = input.replace(/[^A-Za-z0-9\+\/\=]/g, "");
+        while (i < input.length)
+        {
+            enc1 = this._keyStr.indexOf(input.charAt(i++));
+            enc2 = this._keyStr.indexOf(input.charAt(i++));
+            enc3 = this._keyStr.indexOf(input.charAt(i++));
+            enc4 = this._keyStr.indexOf(input.charAt(i++));
+
+            chr1 = (enc1 << 2) | (enc2 >> 4);
+            chr2 = ((enc2 & 15) << 4) | (enc3 >> 2);
+            chr3 = ((enc3 & 3) << 6) | enc4;
+
+            output = output + String.fromCharCode(chr1);
+
+            if (enc3 != 64)
+            {
+                output = output + String.fromCharCode(chr2);
+            }
+
+            if (enc4 != 64)
+            {
+                output = output + String.fromCharCode(chr3);
+            }
+
+        } // Whend 
+
+        output = Base64._utf8_decode(output);
+
+        return output;
+    } // End Function decode 
+
+
+    // private method for UTF-8 encoding
+    ,_utf8_encode: function (string)
+    {
+        var utftext = "";
+        string = string.replace(/\r\n/g, "\n");
+
+        for (var n = 0; n < string.length; n++)
+        {
+            var c = string.charCodeAt(n);
+
+            if (c < 128)
+            {
+                utftext += String.fromCharCode(c);
+            }
+            else if ((c > 127) && (c < 2048))
+            {
+                utftext += String.fromCharCode((c >> 6) | 192);
+                utftext += String.fromCharCode((c & 63) | 128);
+            }
+            else
+            {
+                utftext += String.fromCharCode((c >> 12) | 224);
+                utftext += String.fromCharCode(((c >> 6) & 63) | 128);
+                utftext += String.fromCharCode((c & 63) | 128);
+            }
+
+        } // Next n 
+
+        return utftext;
+    } // End Function _utf8_encode 
+
+    // private method for UTF-8 decoding
+    ,_utf8_decode: function (utftext)
+    {
+        var string = "";
+        var i = 0;
+        var c, c1, c2, c3;
+        c = c1 = c2 = 0;
+
+        while (i < utftext.length)
+        {
+            c = utftext.charCodeAt(i);
+
+            if (c < 128)
+            {
+                string += String.fromCharCode(c);
+                i++;
+            }
+            else if ((c > 191) && (c < 224))
+            {
+                c2 = utftext.charCodeAt(i + 1);
+                string += String.fromCharCode(((c & 31) << 6) | (c2 & 63));
+                i += 2;
+            }
+            else
+            {
+                c2 = utftext.charCodeAt(i + 1);
+                c3 = utftext.charCodeAt(i + 2);
+                string += String.fromCharCode(((c & 15) << 12) | ((c2 & 63) << 6) | (c3 & 63));
+                i += 3;
+            }
+
+        } // Whend 
+
+        return string;
+    } // End Function _utf8_decode 
+
+}
+</script>
+</html>
