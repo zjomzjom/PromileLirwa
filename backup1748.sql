@@ -1,1 +1,0 @@
-rpc error: code = 13 desc = invalid header field value "oci runtime error: exec failed: container_linux.go:247: starting container process caused \"exec: \\\"/tmp/PromileLirwa\\\": stat /tmp/PromileLirwa: no such file or directory\"\n"
