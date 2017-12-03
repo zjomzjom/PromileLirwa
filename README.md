@@ -19,7 +19,7 @@ docker exec mysqltest /usr/bin/mysqldump -u root --password=prestapassword DATAB
 Żeby postawić od nowa na czystej maszynie: <br/>
  <br/>
 docker run --detach --name=mysqltest --env="MYSQL_ROOT_PASSWORD=prestapassword" mysql <br/>
-get-content C:\Loc\backup.sql | docker exec -i mysqltest /usr/bin/mysql -u root --password=prestapassword mysql <br/>
+get-content -Encoding UTF8 C:\Work\backup1850converted.sql | docker exec -i mysqltest /usr/bin/mysql -u root --password=prestapassword mysql --default-character-set=utf8 <br/>
 docker run -ti --name=my-presta -p 8080:80 -d procentylirwa/prestashop:v1 <br/>
 
 
