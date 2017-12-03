@@ -26,9 +26,9 @@ docker run -ti --name=my-presta -p 8080:80 -d procentylirwa/prestashop:v1 <br/>
 Zrobienie dumpa MySQLa:<br>
 docker exec mysqltest /usr/bin/mysqldump -u root --password=prestapassword mysql > backup.sql
 <br><br>
-yum zamiast apt-get
-Przeglądanie docker container: docker exec -it my-presta bash
-Tworzenie tuneli: ssh -v -L8080:localhost:8080 000000tk@lab527.eti.pg.gda.pl -t ssh -v -L8080:localhost:8080 root@172.20.83.73
+yum zamiast apt-get<br>
+Przeglądanie docker container: docker exec -it my-presta bash<br>
+Tworzenie tuneli: ssh -v -L8080:localhost:8080 000000tk@lab527.eti.pg.gda.pl -t ssh -v -L8080:localhost:8080 root@172.20.83.73<br>
 
 
 # Parser
