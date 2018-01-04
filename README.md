@@ -29,6 +29,9 @@ docker exec mysqltest /usr/bin/mysqldump -u root --password=prestapassword mysql
 yum zamiast apt-get<br>
 Przeglądanie docker container: docker exec -it my-presta bash<br>
 Tworzenie tuneli: ssh -v -L8080:localhost:8080 000000tk@lab527.eti.pg.gda.pl -t ssh -v -L8080:localhost:8080 root@172.20.83.73<br>
+<br><br>
+skarpetki:<br>
+ssh -D 80 -C 000000tk@lab527.eti.pg.gda.pl
 
 
 # Parser
